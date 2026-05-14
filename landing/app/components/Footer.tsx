@@ -6,7 +6,7 @@ export default function Footer(){
             <div className="grid grid-cols-3 gap-8">
                 <div>
                     <h3 className="text-naranja text-xl font-bold mb-4">InmoSistema</h3>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-gray-400 font-inter text-sm">
                         Tu aliado de confianza en bienes raíces en Yucatán
                     </p>
                 </div>
@@ -30,7 +30,7 @@ export default function Footer(){
                 </div>
 
                 </div>
-                <p className="text-center text-gray-500 text-xs mt-10">
+                <p className="text-center font-inter text-gray-500 text-xs mt-10">
                     © 2025 InmoSistema. Todos los derechos reservados.  
                 </p>
         </footer>

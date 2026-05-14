@@ -17,6 +17,8 @@
   --color-naranja: #FCA311;
   --color-nieve: #F8F9FA;
   --color-oscuro: #1F2937;
+  --font-playfair: var(--font-playfair);
+  --font-inter: var(--font-inter);
 }
 
 @media (prefers-color-scheme: dark) {

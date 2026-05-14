@@ -10,14 +10,14 @@ const razones = [
 export default function PorQueElegirnos() {
     return (
         <section className="bg-white py-16 px-10">
-            <h2 className="text-3xl font-bold text-prusia text-center mb-10">
+            <h2 className="text-3xl font-playfair font-bold text-prusia text-center mb-10">
                 ¿Por qué elegirnos?
             </h2>
             <div className="grid grid-cols-4 gap-6">
                 {razones.map((razon) => (
                     <div key={razon.id} className="text-center p-6 rounded-xl border border-gray-100 shadow-sm">
                         <div className="flex justify-center text-naranja mb-4">{razon.icono}</div>
-                        <h3 className="text-lg font-bold text-prusia mb-2">{razon.titulo}</h3>
+                        <h3 className="text-lg font-inter font-bold text-prusia mb-2">{razon.titulo}</h3>
                         <p className="text-gray-500 text-sm">{razon.descripcion}</p>
                     </div>
                 )
