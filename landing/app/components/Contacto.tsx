@@ -1,5 +1,6 @@
 "use client"
 
+import { motion } from "framer-motion"
 import { useState } from "react"
 
 export default function Contacto() {
@@ -8,7 +9,12 @@ export default function Contacto() {
     const [mensaje, setMensaje] = useState("")
 
     return (
-        <section className="bg-nieve py-16 px-10">
+        <motion.section 
+        id="contacto"
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="bg-nieve py-16 px-10">
             <h2 className="font-playfair text-3xl font-bold text-prusia text-center mb-10">
                 Contáctanos
             </h2>
@@ -33,10 +39,11 @@ export default function Contacto() {
             onChange={(e) => setMensaje (e.target.value)}
             className="font-inter border border-gray-300 rounded-lg px-4 py-3 text-oscuro" />
 
-            <button className="bg-naranja text-white font-semibold py-3 rounded-b-lg">
+            <button className="bg-naranja text-white font-semibold py-3 rounded-b-lg
+            transition-all duration-300 hover:bg-opacity-80 hover:scale-103 cursor-pointer">
                 Enviar mensaje
             </button>
             </div>
-        </section>
+        </motion.section>
     )
 }
