@@ -1,11 +1,13 @@
 import "./globals.css";
-import Navigation from "./Components/Navigation";
+import Navbar from "./Components/Navbar";
+import Footer from "./Components/Footer";
 export default function Layout({ children }) {
   return (
     <html lang="en">
       <body>
-        <Navigation></Navigation>
+        <Navbar></Navbar>
         {children}
+        <Footer></Footer>
       </body>
     </html>
   );
