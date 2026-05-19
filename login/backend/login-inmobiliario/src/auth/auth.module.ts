@@ -21,7 +21,8 @@ import { RolesGuard } from './guards/roles.guard';
 import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { GoogleStrategy } from './strategies/google.strategy';
-
+import { FacebookStrategy } from './strategies/facebook.strategy';
+import { TwitterStrategy } from './strategies/twitter.strategy';
 @Module({
   imports: [
     // Registra la entidad User para que TypeORM la gestione en este módulo
@@ -49,6 +50,8 @@ import { GoogleStrategy } from './strategies/google.strategy';
     JwtStrategy,
     GoogleStrategy,
     RolesGuard,
+    FacebookStrategy,
+    TwitterStrategy,
   ],
 
   // Exportamos para que otros módulos puedan usar JwtAuthGuard

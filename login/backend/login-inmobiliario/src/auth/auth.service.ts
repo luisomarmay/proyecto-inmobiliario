@@ -65,6 +65,8 @@ export class AuthService {
       role: UserRole.CLIENTE, // por defecto, todo nuevo registro es cliente
     });
 
+    await this.mailService.sendWelcome(user.email, user.name);
+
     return this.generateAndSaveTokens(user);
   }
 
@@ -126,6 +128,7 @@ export class AuthService {
           avatar: googleUser.avatar,
           role: UserRole.CLIENTE,
         });
+        await this.mailService.sendWelcome(user.email, user.name);
       }
     }
 
@@ -244,5 +247,69 @@ export class AuthService {
         avatar: user.avatar,
       },
     };
+  }
+
+  // LOGIN CON FACEBOOK
+
+  async facebookLogin(facebookUser: {
+    facebookId: string;
+    email: string;
+    name: string;
+    avatar: string;
+  }): Promise<AuthTokens> {
+    let user = await this.usersService.findByFacebookId(facebookUser.facebookId);
+
+    if (!user) {
+      user = await this.usersService.findByEmail(facebookUser.email);
+      if (user) {
+        await this.usersService.update(user.id, {
+          facebookId: facebookUser.facebookId,
+          avatar: facebookUser.avatar,
+        });
+      } else {
+        user = await this.usersService.create({
+          facebookId: facebookUser.facebookId,
+          email: facebookUser.email,
+          name: facebookUser.name,
+          avatar: facebookUser.avatar,
+          role: UserRole.CLIENTE,
+        });
+        await this.mailService.sendWelcome(user.email, user.name);
+      }
+    }
+
+    return this.generateAndSaveTokens(user);
+  }
+
+  // LOGIN CON TWITTER
+
+  async twitterLogin(twitterUser: {
+    twitterId: string;
+    email: string;
+    name: string;
+    avatar: string;
+  }): Promise<AuthTokens> {
+    let user = await this.usersService.findByTwitterId(twitterUser.twitterId);
+
+    if (!user) {
+      user = await this.usersService.findByEmail(twitterUser.email);
+      if (user) {
+        await this.usersService.update(user.id, {
+          twitterId: twitterUser.twitterId,
+          avatar: twitterUser.avatar,
+        });
+      } else {
+        user = await this.usersService.create({
+          twitterId: twitterUser.twitterId,
+          email: twitterUser.email,
+          name: twitterUser.name,
+          avatar: twitterUser.avatar,
+          role: UserRole.CLIENTE,
+        });
+        await this.mailService.sendWelcome(user.email, user.name);
+      }
+    }
+
+    return this.generateAndSaveTokens(user);
   }
 }

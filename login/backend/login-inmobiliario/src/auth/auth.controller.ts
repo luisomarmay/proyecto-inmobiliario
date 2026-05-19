@@ -16,6 +16,9 @@ import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ConfigService } from '@nestjs/config';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { FacebookAuthGuard } from './guards/facebook-auth.guard';
+import { TwitterAuthGuard } from './guards/twitter-auth.guard';
+
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -122,5 +125,39 @@ export class AuthController {
   async resetPassword(@Body() body: { token: string; password: string }) {
     await this.authService.resetPassword(body.token, body.password);
     return { message: 'Contraseña actualizada correctamente.' };
+  }
+
+  // GET /auth/facebook
+  @Get('facebook')
+  @UseGuards(FacebookAuthGuard)
+  facebookAuth() {}
+
+  // GET /auth/facebook/callback
+  @Get('facebook/callback')
+  @UseGuards(FacebookAuthGuard)
+  async facebookCallback(@Req() req: Request, @Res() res: Response) {
+    const tokens = await this.authService.facebookLogin(req.user as any);
+    this.setRefreshTokenCookie(res, tokens.refreshToken);
+    const frontendUrl = this.configService.get('FRONTEND_URL');
+    return res.redirect(
+      `${frontendUrl}/auth/callback?token=${tokens.accessToken}&role=${tokens.user.role}`,
+    );
+  }
+
+  // GET /auth/twitter
+  @Get('twitter')
+  @UseGuards(TwitterAuthGuard)
+  twitterAuth() {}
+
+  // GET /auth/twitter/callback
+  @Get('twitter/callback')
+  @UseGuards(TwitterAuthGuard)
+  async twitterCallback(@Req() req: Request, @Res() res: Response) {
+    const tokens = await this.authService.twitterLogin(req.user as any);
+    this.setRefreshTokenCookie(res, tokens.refreshToken);
+    const frontendUrl = this.configService.get('FRONTEND_URL');
+    return res.redirect(
+      `${frontendUrl}/auth/callback?token=${tokens.accessToken}&role=${tokens.user.role}`,
+    );
   }
 }

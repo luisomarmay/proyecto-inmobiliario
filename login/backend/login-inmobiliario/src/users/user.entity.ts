@@ -60,4 +60,10 @@ export class User {
 
   @Column({ type: 'timestamptz', nullable: true })
   resetPasswordExpires?: Date | null;
+
+  @Column({ nullable: true })
+  facebookId?: string;
+
+  @Column({ nullable: true })
+  twitterId?: string;
 }

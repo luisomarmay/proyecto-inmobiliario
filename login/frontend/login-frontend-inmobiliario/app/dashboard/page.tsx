@@ -27,7 +27,7 @@ export default function DashboardPage() {
           Bienvenido al sistema
         </h1>
         <p className="mt-3 mb-8 text-sm" style={{ color: '#6b7280' }}>
-          Gracias por iniciar sesión. Aca iria el home?
+          Gracias por iniciar sesión.s
         </p>
         <button onClick={handleLogout}
           className="px-6 py-2.5 rounded-lg text-sm font-medium transition-all"

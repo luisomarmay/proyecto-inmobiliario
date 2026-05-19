@@ -59,4 +59,32 @@ export class MailService {
 
     this.logger.log(`Email de recuperación enviado a ${email}`);
   }
+
+  async sendWelcome(email: string, name: string): Promise<void> {
+    await this.transporter.sendMail({
+      from: this.configService.get('MAIL_FROM'),
+      to: email,
+      subject: '¡Bienvenido al Sistema Inmobiliario!',
+      html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#FCA311;margin-bottom:24px;"></div>
+        <h2 style="color:#14213D;margin-bottom:8px;">¡Bienvenido, ${name}!</h2>
+        <p style="color:#6b7280;font-size:14px;line-height:1.6;">
+          Tu cuenta en <strong>Sistema Inmobiliario</strong> ha sido creada exitosamente.
+          Ya puedes explorar propiedades, gestionar tus rentas y mucho más.
+        </p>
+        <a href="${this.configService.get('FRONTEND_URL')}/login"
+          style="display:inline-block;margin-top:24px;padding:12px 28px;
+                 background:#14213D;color:#F8F9FA;border-radius:8px;
+                 text-decoration:none;font-size:14px;font-weight:500;">
+          Ir al sistema
+        </a>
+        <p style="color:#9ca3af;font-size:12px;margin-top:24px;">
+          Si no creaste esta cuenta, ignora este correo.
+        </p>
+      </div>
+    `,
+    });
+    this.logger.log(`Email de bienvenida enviado a ${email}`);
+  }
 }

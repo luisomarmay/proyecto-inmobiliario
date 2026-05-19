@@ -61,4 +61,12 @@ export class UsersService {
       .where('user.resetPasswordToken = :token', { token })
       .getOne();
   }
+
+  async findByFacebookId(facebookId: string): Promise<User | null> {
+    return this.usersRepo.findOne({ where: { facebookId } });
+  }
+
+  async findByTwitterId(twitterId: string): Promise<User | null> {
+    return this.usersRepo.findOne({ where: { twitterId } });
+  }
 }
