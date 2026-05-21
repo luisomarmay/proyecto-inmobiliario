@@ -1,7 +1,7 @@
 "use client"
-
 import { motion } from "framer-motion"
 import { useState } from "react"
+import { Mail, User, MessageSquare, Send } from "lucide-react"
 
 export default function Contacto() {
     const [nombre, setNombre] = useState("")
@@ -9,40 +9,62 @@ export default function Contacto() {
     const [mensaje, setMensaje] = useState("")
 
     return (
-        <motion.section 
-        id="contacto"
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="bg-nieve py-16 px-10">
-            <h2 className="font-playfair text-3xl font-bold text-prusia text-center mb-10">
-                Contáctanos
-            </h2>
+        <motion.section
+            id="contacto"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-prusia py-24 px-16">
+            <div className="text-center mb-14">
+                <span className="text-naranja font-inter text-sm font-semibold uppercase tracking-widest">
+                    Estamos para ayudarte
+                </span>
+                <h2 className="font-playfair text-4xl font-bold text-white mt-3">
+                    Contáctanos
+                </h2>
+            </div>
 
-            <div className="max-w-xl mx-auto flex flex-col gap-4">
-            <input type="text"
-            placeholder="Nombre"
-            value={nombre}
-            onChange={(e) => setNombre (e.target.value)}
-            className="font-inter border border-gray-300 rounded-lg px-4 py-3 text-oscuro" />
-            
-            <input type="text"
-            placeholder="Correo"
-            value={correo}
-            onChange={(e) => setCorreo (e.target.value)}
-            className="font-inter border border-gray-300 rounded-lg px-4 py-3 text-oscuro" />
-
-            <textarea
-            placeholder="Mensaje"
-            rows={5}
-            value={mensaje}
-            onChange={(e) => setMensaje (e.target.value)}
-            className="font-inter border border-gray-300 rounded-lg px-4 py-3 text-oscuro" />
-
-            <button className="bg-naranja text-white font-semibold py-3 rounded-b-lg
-            transition-all duration-300 hover:bg-opacity-80 hover:scale-103 cursor-pointer">
-                Enviar mensaje
-            </button>
+            <div className="max-w-2xl mx-auto bg-white/5 border border-white/10 rounded-3xl p-10 backdrop-blur-sm">
+                <div className="flex flex-col gap-5">
+                    <div className="relative">
+                        <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" />
+                        <input
+                            type="text"
+                            placeholder="Nombre completo"
+                            value={nombre}
+                            onChange={(e) => setNombre(e.target.value)}
+                            className="w-full font-inter bg-white/10 border border-white/20 rounded-xl pl-11 pr-4 py-3.5
+                            text-white placeholder:text-white/30 focus:outline-none focus:border-naranja transition-all duration-300"
+                        />
+                    </div>
+                    <div className="relative">
+                        <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" />
+                        <input
+                            type="email"
+                            placeholder="Correo electrónico"
+                            value={correo}
+                            onChange={(e) => setCorreo(e.target.value)}
+                            className="w-full font-inter bg-white/10 border border-white/20 rounded-xl pl-11 pr-4 py-3.5
+                            text-white placeholder:text-white/30 focus:outline-none focus:border-naranja transition-all duration-300"
+                        />
+                    </div>
+                    <div className="relative">
+                        <MessageSquare size={16} className="absolute left-4 top-5 text-white/40" />
+                        <textarea
+                            placeholder="¿En qué podemos ayudarte?"
+                            rows={5}
+                            value={mensaje}
+                            onChange={(e) => setMensaje(e.target.value)}
+                            className="w-full font-inter bg-white/10 border border-white/20 rounded-xl pl-11 pr-4 py-3.5
+                            text-white placeholder:text-white/30 focus:outline-none focus:border-naranja transition-all duration-300 resize-none"
+                        />
+                    </div>
+                    <button className="flex items-center justify-center gap-2 bg-naranja text-white font-inter font-semibold py-4 rounded-xl
+                    transition-all duration-300 hover:brightness-110 hover:scale-[1.02] cursor-pointer shadow-lg shadow-naranja/30">
+                        <Send size={16} />
+                        Enviar mensaje
+                    </button>
+                </div>
             </div>
         </motion.section>
     )

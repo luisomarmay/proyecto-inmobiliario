@@ -1,38 +1,46 @@
-import {Smartphone, Mail, MapPin } from "lucide-react"
+import { Smartphone, Mail, MapPin } from "lucide-react"
 
-export default function Footer(){
-    return(
-        <footer className="bg-prusia text-white py-12 px-20">
-            <div className="grid grid-cols-3 gap-8">
+export default function Footer() {
+    return (
+        <footer className="bg-oscuro text-white py-16 px-16 border-t border-white/10">
+            <div className="grid grid-cols-3 gap-12 mb-12">
                 <div>
-                    <h3 className="text-naranja text-xl font-bold mb-4">InmoSistema</h3>
-                    <p className="text-gray-400 font-inter text-sm">
-                        Tu aliado de confianza en bienes raíces en Yucatán
-                    </p>
+                    <h3 className="text-naranja text-xl font-playfair font-bold mb-3">Sistema Inmobiliario</h3>
+                    
                 </div>
-
                 <div>
-                    <h3 className="text-white font-bold mb-4">Enlaces</h3>
-                    <ul className="space-y-2 text-gray-400 text-sm">
-                        <li>Propiedades</li>
-                        <li>Nosotros</li>
-                        <li>Contactanos</li>
+                    <h3 className="text-white font-inter font-bold mb-4 text-sm uppercase tracking-widest">
+                        Navegación
+                    </h3>
+                    <ul className="space-y-3 text-white/50 text-sm font-inter">
+                        {["Propiedades", "Nosotros", "Contáctanos"].map((item) => (
+                            <li key={item} className="cursor-pointer hover:text-naranja transition-colors duration-200">{item}</li>
+                        ))}
                     </ul>
                 </div>
-
                 <div>
-                    <h3 className="text-white font-boldmb-4">Contacto</h3>
-                    <ul className="space-y-2 text-gray-400 text-smn">
-                        <li className="flex items-center gap-2"><Smartphone size={16}/> 999 123 4567</li>
-                        <li className="flex items-center gap-2"><Mail size={16}/>contacto@inmosistema.mx</li>
-                        <li className="flex items-center gap-2"><MapPin size={16}/>Mérida, Yucatán</li>
+                    <h3 className="text-white font-inter font-bold mb-4 text-sm uppercase tracking-widest">
+                        Contacto
+                    </h3>
+                    <ul className="space-y-3 text-white/50 text-sm font-inter">
+                        <li className="flex items-center gap-3 hover:text-naranja transition-colors duration-200 cursor-pointer">
+                            <Smartphone size={15} className="text-naranja" /> 999 123 4567
+                        </li>
+                        <li className="flex items-center gap-3 hover:text-naranja transition-colors duration-200 cursor-pointer">
+                            <Mail size={15} className="text-naranja" /> contacto@inmosistema.mx
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <MapPin size={15} className="text-naranja" /> Mérida, Yucatán
+                        </li>
                     </ul>
                 </div>
-
-                </div>
-                <p className="text-center font-inter text-gray-500 text-xs mt-10">
-                    © 2025 InmoSistema. Todos los derechos reservados.  
+            </div>
+            <div className="border-t border-white/10 pt-8 flex justify-between items-center">
+                <p className="font-inter text-white/30 text-xs">
+                    © 2025 Sistema inmobiliario. Todos los derechos reservados.
                 </p>
+               
+            </div>
         </footer>
     )
 }

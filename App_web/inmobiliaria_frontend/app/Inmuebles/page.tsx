@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 export default function Inmuebles() {
   const [properties, setProperties] = useState([]);
   useEffect(() => {
-    fetch("http://localhost:3001/rent")
+    fetch("http://localhost:3002/rent")
       .then((res) => res.json())
       .then((data) => {
         console.log("BACKEND DATA:", data);

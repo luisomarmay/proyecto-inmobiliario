@@ -1,35 +1,72 @@
 "use client"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-
-const propiedades = [
-        { id: 1, titulo: "Casa en Mérida", precio: "$2,500,000", tipo: "Venta", ubicacion: "Mérida, Yucatán" },
-        { id: 2, titulo: "Depto en Montejo", precio: "$1,800,000", tipo: "Renta", ubicacion: "Mérida, Yucatán" },
-        { id: 3, titulo: "Local en Centro", precio: "$950,000", tipo: "Venta", ubicacion: "Izamal, Yucatán" },
-]
+import { MapPin } from "lucide-react"
+import { Bed, Bath } from "lucide-react"
 
 export default function Propiedades() {
+  const [propiedades, setPropiedades] = useState([])
+
+  useEffect(() => {
+    fetch("http://localhost:3002/rent")
+      .then(res => res.json())
+      .then(data => setPropiedades(data))
+  }, [])
+
     return (
-        <motion.section id="propiedades"
-        initial={{ opacity: 0, y: 50}}
-        whileInView={{ opacity: 1, y: 0}}
-        transition={{ duration:0.6 }} 
-        className="bg-nieve py-16 px-10">
-            <h2 className="text-3xl font-playfair font-bold text-prusia text-center mb-10" >
-                Propiedades destacadas
-            </h2>
+        <motion.section
+            id="propiedades"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-nieve py-24 px-16">
+            <div className="text-center mb-14">
+                <span className="text-naranja font-inter text-sm font-semibold uppercase tracking-widest">
+                    Inmuebles disponibles
+                </span>
+                <h2 className="text-4xl font-playfair font-bold text-prusia mt-3">
+                    Propiedades destacadas
+                </h2>
+            </div>
             <div className="grid grid-cols-3 gap-8">
-                {propiedades.map((propiedad) => (
-                    <div key={propiedad.id} className="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 cursor-pointer">
-                        <div className="bg-prusia h-40 rounded-lg mb-4"></div>
-                        <h3 className="text-xl font-inter font-bold text-oscuro">{propiedad.titulo}</h3>
-                        <p className="text-naranja font-semibold">{propiedad.precio}</p>
-                        <p className="text-gray-500 text-sm">{propiedad.ubicacion}</p>
-                        <span className="text-xs bg-naranja text-white px-3 py-1 rounded-full">
-                            {propiedad.tipo}
-                        </span>
-                    </div>
-                )
-                )}
+                {propiedades.slice(0, 3).map((propiedad: any, i: number) => (
+                    <motion.div
+                        key={propiedad.id}
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: i * 0.1 }}
+                        className="group bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100
+                        transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 cursor-pointer">
+                        
+                           <div className="relative h-48 overflow-hidden">
+                           <img
+                            src={propiedad.image}
+                            alt={propiedad.title}
+                            className="w-full h-full object-cover"
+                            />
+                            <span className="absolute top-4 left-4 text-xs font-inter font-semibold px-3 py-1 rounded-full bg-naranja text-white">
+                           {propiedad.type}
+                            </span>
+                        </div>
+                        <div className="p-6">
+                            <h3 className="text-lg font-inter font-bold text-oscuro mb-1">{propiedad.title}</h3>
+                            <p className="text-naranja font-inter font-bold text-xl mb-3">{propiedad.price} MX</p>
+                             <span className="text-xs bg-naranja text-white px-3 py-1 rounded-full mt-2 inline-block">
+                            {propiedad.type}
+                            </span>
+                            <div className="flex items-center gap-1 text-gray-400 text-sm mb-4">
+                                <MapPin size={14} />
+                                 <p className="text-gray-500 text-sm">{propiedad.address  || "Ubicación no disponible" }</p>
+                            </div>
+                            <span className="text-gray-500 flex items-center gap-1">
+                        <Bed size={14} /> {propiedad.bedrooms} hab.
+                       </span>
+                    <span className="text-gray-500 flex items-center gap-1">
+                    <Bath size={14} /> {propiedad.bathrooms} baños
+                    </span>
+                        </div>
+                    </motion.div>
+                ))}
             </div>
         </motion.section>
     )
