@@ -29,6 +29,7 @@ export class RentService {
         type: property.property_type,     
         address: property.location?.name,
         image: property.title_image_full,
+        parking: property.parking_spaces || 0,
         /* image: property.title_image_thumb, */
         title: property.title,
       }));
