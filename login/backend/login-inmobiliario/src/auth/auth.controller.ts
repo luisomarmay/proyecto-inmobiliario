@@ -59,7 +59,7 @@ export class AuthController {
     this.setRefreshTokenCookie(res, tokens.refreshToken);
     const frontendUrl = this.configService.get('FRONTEND_URL');
     return res.redirect(
-      `${frontendUrl}/auth/callback?token=${tokens.accessToken}&role=${tokens.user.role}`,
+  `${frontendUrl}/auth/callback?token=${tokens.accessToken}&role=${tokens.user.role}&provider=google`,
     );
   }
 
@@ -140,7 +140,7 @@ export class AuthController {
     this.setRefreshTokenCookie(res, tokens.refreshToken);
     const frontendUrl = this.configService.get('FRONTEND_URL');
     return res.redirect(
-      `${frontendUrl}/auth/callback?token=${tokens.accessToken}&role=${tokens.user.role}`,
+  `${frontendUrl}/auth/callback?token=${tokens.accessToken}&role=${tokens.user.role}&provider=facebook`,
     );
   }
 
@@ -157,7 +157,7 @@ export class AuthController {
     this.setRefreshTokenCookie(res, tokens.refreshToken);
     const frontendUrl = this.configService.get('FRONTEND_URL');
     return res.redirect(
-      `${frontendUrl}/auth/callback?token=${tokens.accessToken}&role=${tokens.user.role}`,
+  `${frontendUrl}/auth/callback?token=${tokens.accessToken}&role=${tokens.user.role}&provider=twitter`,
     );
   }
 }

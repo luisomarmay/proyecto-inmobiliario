@@ -13,6 +13,7 @@ async function bootstrap() {
   });
 
   app.use(session({
+
     secret: process.env.JWT_SECRET || 'session_secret',
     resave: false,
     saveUninitialized: false,

@@ -29,8 +29,7 @@ export class MailService {
   // Envía el email de recuperación de contraseña
   async sendPasswordReset(email: string, token: string): Promise<void> {
     const frontendUrl = this.configService.get('FRONTEND_URL');
-    const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
-
+    const resetUrl = `${frontendUrl}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
     await this.transporter.sendMail({
       from: this.configService.get('MAIL_FROM'),
       to: email,

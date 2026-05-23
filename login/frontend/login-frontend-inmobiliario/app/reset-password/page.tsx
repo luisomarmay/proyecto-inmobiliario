@@ -7,12 +7,15 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const params = useSearchParams();
   const token = params.get('token');
+  const email = params.get('email'); // viene en la URL desde el correo
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expired, setExpired] = useState(false);   // muestra botón reenviar
+  const [resent, setResent] = useState(false);      // confirma que se reenivó
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,9 +44,37 @@ export default function ResetPasswordPage() {
       if (!res.ok) throw new Error(data.message || 'Error al restablecer');
       setDone(true);
     } catch (err: any) {
+      // Si el token expiró o es inválido, muestra el botón de reenviar
+      if (
+        err.message.includes('expirado') ||
+        err.message.includes('inválido') ||
+        err.message.includes('invalido')
+      ) {
+        setExpired(true);
+      }
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Reenvía un nuevo correo de recuperación
+  const handleResend = async () => {
+    if (!email) {
+      setError('No se encontró el correo. Ve a ¿Olvidaste tu contraseña? e inténtalo de nuevo.');
+      return;
+    }
+
+    try {
+      await fetch('http://localhost:3001/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      setResent(true);
+      setError(null);
+    } catch {
+      setError('Error al reenviar el correo. Intenta de nuevo.');
     }
   };
 
@@ -54,6 +85,7 @@ export default function ResetPasswordPage() {
         style={{ background: 'var(--snow)' }}>
         <div className="p-10">
 
+          {/* Logo */}
           <div className="flex items-center gap-2 mb-8">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--orange)' }} />
             <span className="text-sm font-medium" style={{ color: 'var(--prussian)', fontFamily: 'var(--font-playfair)' }}>
@@ -83,8 +115,7 @@ export default function ResetPasswordPage() {
                     className="w-full px-4 py-3 rounded-lg text-sm outline-none"
                     style={{ border: '1.5px solid #e5e7eb', fontFamily: 'var(--font-dm)', color: 'var(--jet)' }}
                     onFocus={e => e.target.style.borderColor = 'var(--prussian)'}
-                    onBlur={e => e.target.style.borderColor = '#e5e7eb'}
-                  />
+                    onBlur={e => e.target.style.borderColor = '#e5e7eb'} />
                 </div>
 
                 <div className="mb-5">
@@ -98,10 +129,10 @@ export default function ResetPasswordPage() {
                     className="w-full px-4 py-3 rounded-lg text-sm outline-none"
                     style={{ border: '1.5px solid #e5e7eb', fontFamily: 'var(--font-dm)', color: 'var(--jet)' }}
                     onFocus={e => e.target.style.borderColor = 'var(--prussian)'}
-                    onBlur={e => e.target.style.borderColor = '#e5e7eb'}
-                  />
+                    onBlur={e => e.target.style.borderColor = '#e5e7eb'} />
                 </div>
 
+                {/* Mensaje de error */}
                 {error && (
                   <div className="mb-4 px-4 py-3 rounded-lg text-sm"
                     style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
@@ -109,9 +140,38 @@ export default function ResetPasswordPage() {
                   </div>
                 )}
 
+                {/* Botón reenviar — aparece solo cuando el token expiró */}
+                {expired && !resent && (
+                  <button type="button" onClick={handleResend}
+                    className="w-full py-3 rounded-lg text-sm font-medium mb-3 transition-all"
+                    style={{
+                      background: 'var(--orange)',
+                      color: 'var(--prussian)',
+                      fontFamily: 'var(--font-dm)',
+                      cursor: 'pointer',
+                      border: 'none',
+                      fontWeight: 600,
+                    }}>
+                    Reenviar correo de recuperación
+                  </button>
+                )}
+
+                {/* Confirmación de reenvío */}
+                {resent && (
+                  <div className="mb-4 px-4 py-3 rounded-lg text-sm text-center"
+                    style={{ background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0' }}>
+                    ✓ Correo reenviado — revisa tu bandeja de entrada
+                  </div>
+                )}
+
                 <button type="submit" disabled={loading}
                   className="w-full py-3 rounded-lg text-sm font-medium transition-all"
-                  style={{ background: loading ? '#6b7280' : 'var(--prussian)', color: 'var(--snow)', fontFamily: 'var(--font-dm)', cursor: loading ? 'not-allowed' : 'pointer' }}>
+                  style={{
+                    background: loading ? '#6b7280' : 'var(--prussian)',
+                    color: 'var(--snow)',
+                    fontFamily: 'var(--font-dm)',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                  }}>
                   {loading ? 'Guardando...' : 'Guardar contraseña'}
                 </button>
               </form>
@@ -135,6 +195,7 @@ export default function ResetPasswordPage() {
               </button>
             </div>
           )}
+
         </div>
       </div>
     </main>

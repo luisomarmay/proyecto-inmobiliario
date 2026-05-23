@@ -1,11 +1,5 @@
 'use client';
 
-// ============================================================
-// app/auth/callback/page.tsx
-// Google redirige aquí después del login con OAuth.
-// Lee el token de la URL y redirige al dashboard.
-// ============================================================
-
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { tokenStore } from '../../../lib/auth';
@@ -23,16 +17,17 @@ export default function AuthCallbackPage() {
       return;
     }
 
-    // Guarda el token en memoria
     tokenStore.set(token);
 
-    // Redirige según el rol
     if (role === 'admin') {
       router.push('/dashboard/admin');
     } else {
       router.push('/dashboard');
     }
   }, []);
+
+  const provider = params.get('provider') || 'google';
+  const providerName = provider.charAt(0).toUpperCase() + provider.slice(1);
 
   return (
     <main className="min-h-screen flex items-center justify-center"
@@ -41,7 +36,7 @@ export default function AuthCallbackPage() {
         <div className="w-3 h-3 rounded-full mx-auto mb-4 animate-pulse"
           style={{ background: 'var(--orange)' }} />
         <p className="text-sm" style={{ color: 'rgba(248,249,250,0.6)', fontFamily: 'var(--font-dm)' }}>
-          Iniciando sesión con Google...
+          Iniciando sesión con {providerName}...
         </p>
       </div>
     </main>

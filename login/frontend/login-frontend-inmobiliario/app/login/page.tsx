@@ -1,11 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { login, register, tokenStore } from '../../lib/auth';
 
 type Tab = 'login' | 'register';
 interface FormState { name: string; email: string; password: string; }
+
+const slides = [
+  {
+    title: <>Tu próxima<br />propiedad<br />te <span style={{ color: 'var(--orange)' }}>espera</span></>,
+    sub: 'Gestiona ventas, rentas y clientes desde un solo lugar.',
+  },
+  {
+    title: <>Propiedades<br />con tecnología<br /><span style={{ color: 'var(--orange)' }}>de punta</span></>,
+    sub: 'Publica con tours 360° y multimedia 4K.',
+  },
+  {
+    title: <>Contratos<br />digitales<br /><span style={{ color: 'var(--orange)' }}>sin papel</span></>,
+    sub: 'Firma documentos sin salir de la plataforma.',
+  },
+];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,6 +28,14 @@ export default function LoginPage() {
   const [form, setForm] = useState<FormState>({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveSlide(prev => (prev + 1) % slides.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -52,6 +75,8 @@ export default function LoginPage() {
         {/* Panel izquierdo — branding */}
         <div className="hidden md:flex flex-col justify-center w-5/12 p-12 relative"
           style={{ background: 'var(--prussian)', borderRight: '1px solid rgba(248,249,250,0.07)' }}>
+
+          {/* Logo */}
           <div className="flex items-center gap-2 mb-12">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--orange)' }} />
             <span className="text-sm font-medium tracking-wide"
@@ -59,20 +84,44 @@ export default function LoginPage() {
               Sistema Inmobiliario
             </span>
           </div>
+
+          {/* Headline — cambia con cada slide */}
           <div className="mb-6">
             <div className="w-8 h-0.5 mb-5" style={{ background: 'var(--orange)' }} />
-            <h1 style={{ fontFamily: 'var(--font-playfair)', color: 'var(--snow)', fontSize: '34px', lineHeight: 1.2, fontWeight: 700 }}>
-              Tu próxima<br />propiedad<br />te <span style={{ color: 'var(--orange)' }}>espera</span>
+            <h1 key={activeSlide}
+              className="animate-fade-up"
+              style={{
+                fontFamily: 'var(--font-playfair)',
+                color: 'var(--snow)',
+                fontSize: '34px',
+                lineHeight: 1.2,
+                fontWeight: 700,
+              }}>
+              {slides[activeSlide].title}
             </h1>
           </div>
-          <p className="text-sm leading-relaxed" style={{ color: 'rgba(248,249,250,0.45)', fontWeight: 300 }}>
-            Gestiona ventas, rentas y clientes<br />desde un solo lugar.
-          </p>
-          <div className="absolute bottom-10 left-12 flex gap-1.5">
-            {[1,2,3].map(i => (
-              <div key={i} className="w-1.5 h-1.5 rounded-full"
-                style={{ background: i === 1 ? 'var(--orange)' : 'rgba(248,249,250,0.2)' }} />
-            ))}
+
+          {/* Slides automáticos */}
+          <div className="absolute bottom-10 left-12 right-8">
+            <p className="text-sm mb-4 transition-all duration-500"
+              style={{ color: 'rgba(248,249,250,0.7)', fontWeight: 300, minHeight: '44px', lineHeight: 1.6 }}>
+              {slides[activeSlide].sub}
+            </p>
+            <div className="flex gap-1.5">
+              {slides.map((_, i) => (
+                <button key={i} type="button" onClick={() => setActiveSlide(i)}
+                  className="transition-all duration-300"
+                  style={{
+                    width: activeSlide === i ? '20px' : '6px',
+                    height: '6px',
+                    borderRadius: '3px',
+                    background: activeSlide === i ? 'var(--orange)' : 'rgba(248,249,250,0.3)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }} />
+              ))}
+            </div>
           </div>
         </div>
 
@@ -95,7 +144,7 @@ export default function LoginPage() {
             ))}
           </div>
 
-          {/* Formulario — solo campos y botón submit */}
+          {/* Formulario */}
           <form onSubmit={handleSubmit} key={tab}>
             <p className="text-xs mb-6" style={{ color: '#6b7280', fontWeight: 300 }}>
               {tab === 'login' ? 'Bienvenido de vuelta' : 'Crea tu cuenta gratis'}
@@ -137,7 +186,6 @@ export default function LoginPage() {
                 onBlur={e => e.target.style.borderColor = '#e5e7eb'} />
             </div>
 
-            {/* ¿Olvidaste tu contraseña? — solo en login */}
             {tab === 'login' && (
               <div className="text-right mb-4">
                 <a href="/forgot-password" className="text-xs"
@@ -166,7 +214,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Botones sociales — FUERA del form para evitar submit */}
+          {/* Botones sociales — FUERA del form */}
           <div className="flex items-center gap-3 my-5">
             <div className="flex-1 h-px" style={{ background: '#e5e7eb' }} />
             <span className="text-xs" style={{ color: '#9ca3af' }}>o continúa con</span>
