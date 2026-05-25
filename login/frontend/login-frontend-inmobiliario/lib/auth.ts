@@ -5,7 +5,7 @@
 // Si cambia la URL del backend, solo se cambia BACKEND_URL.
 // ============================================================
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://login-backend-inmobiliario-production.up.railway.app';
 
 // Estructura del usuario que devuelve el backend
 export interface AuthUser {

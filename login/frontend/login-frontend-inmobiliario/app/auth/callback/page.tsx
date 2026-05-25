@@ -1,10 +1,11 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { tokenStore } from '../../../lib/auth';
 
-export default function AuthCallbackPage() {
+function CallbackContent() {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -40,5 +41,13 @@ export default function AuthCallbackPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense>
+      <CallbackContent />
+    </Suspense>
   );
 }

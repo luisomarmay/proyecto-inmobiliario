@@ -1,21 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter();
   const params = useSearchParams();
   const token = params.get('token');
-  const email = params.get('email'); // viene en la URL desde el correo
+  const email = params.get('email');
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expired, setExpired] = useState(false);   // muestra botón reenviar
-  const [resent, setResent] = useState(false);      // confirma que se reenivó
+  const [expired, setExpired] = useState(false);
+  const [resent, setResent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +34,7 @@ export default function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:3001/auth/reset-password', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password }),
@@ -44,7 +44,6 @@ export default function ResetPasswordPage() {
       if (!res.ok) throw new Error(data.message || 'Error al restablecer');
       setDone(true);
     } catch (err: any) {
-      // Si el token expiró o es inválido, muestra el botón de reenviar
       if (
         err.message.includes('expirado') ||
         err.message.includes('inválido') ||
@@ -58,7 +57,6 @@ export default function ResetPasswordPage() {
     }
   };
 
-  // Reenvía un nuevo correo de recuperación
   const handleResend = async () => {
     if (!email) {
       setError('No se encontró el correo. Ve a ¿Olvidaste tu contraseña? e inténtalo de nuevo.');
@@ -66,7 +64,7 @@ export default function ResetPasswordPage() {
     }
 
     try {
-      await fetch('http://localhost:3001/auth/forgot-password', {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -85,7 +83,6 @@ export default function ResetPasswordPage() {
         style={{ background: 'var(--snow)' }}>
         <div className="p-10">
 
-          {/* Logo */}
           <div className="flex items-center gap-2 mb-8">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--orange)' }} />
             <span className="text-sm font-medium" style={{ color: 'var(--prussian)', fontFamily: 'var(--font-playfair)' }}>
@@ -132,7 +129,6 @@ export default function ResetPasswordPage() {
                     onBlur={e => e.target.style.borderColor = '#e5e7eb'} />
                 </div>
 
-                {/* Mensaje de error */}
                 {error && (
                   <div className="mb-4 px-4 py-3 rounded-lg text-sm"
                     style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
@@ -140,7 +136,6 @@ export default function ResetPasswordPage() {
                   </div>
                 )}
 
-                {/* Botón reenviar — aparece solo cuando el token expiró */}
                 {expired && !resent && (
                   <button type="button" onClick={handleResend}
                     className="w-full py-3 rounded-lg text-sm font-medium mb-3 transition-all"
@@ -156,7 +151,6 @@ export default function ResetPasswordPage() {
                   </button>
                 )}
 
-                {/* Confirmación de reenvío */}
                 {resent && (
                   <div className="mb-4 px-4 py-3 rounded-lg text-sm text-center"
                     style={{ background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0' }}>
@@ -199,5 +193,13 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

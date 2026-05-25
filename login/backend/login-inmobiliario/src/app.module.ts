@@ -6,22 +6,35 @@ import { User } from './users/user.entity';
 
 @Module({
   imports: [
-    // Variables de entorno disponibles en toda la app
     ConfigModule.forRoot({ isGlobal: true }),
 
-    // Conexión a PostgreSQL
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get('DB_HOST'),
-        port: config.get<number>('DB_PORT'),
-        username: config.get('DB_USER'),
-        password: config.get('DB_PASS'),
-        database: config.get('DB_NAME'),
-        entities: [User],
-        synchronize: true, // ⚠️ solo en desarrollo, en prod usar migraciones
-      }),
+      useFactory: (config: ConfigService) => {
+        const databaseUrl = config.get('DATABASE_URL');
+
+        // Si hay DATABASE_URL (Railway) la usa, si no usa las variables individuales (local)
+        if (databaseUrl) {
+          return {
+            type: 'postgres',
+            url: databaseUrl,
+            entities: [User],
+            synchronize: true,
+            ssl: { rejectUnauthorized: false }, // requerido en Railway
+          };
+        }
+
+        return {
+          type: 'postgres',
+          host: config.get('DB_HOST'),
+          port: config.get<number>('DB_PORT'),
+          username: config.get('DB_USER'),
+          password: config.get('DB_PASS'),
+          database: config.get('DB_NAME'),
+          entities: [User],
+          synchronize: true,
+        };
+      },
     }),
 
     AuthModule,

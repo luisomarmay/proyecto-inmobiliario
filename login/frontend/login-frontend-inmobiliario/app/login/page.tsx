@@ -224,7 +224,7 @@ export default function LoginPage() {
           <div className="flex flex-col gap-3">
             {/* Google */}
             <button type="button"
-              onClick={() => window.location.href = 'http://localhost:3001/auth/google'}
+              onClick={() => window.location.href = 'https://login-backend-inmobiliario-production.up.railway.app/auth/google'}
               className="w-full py-3 rounded-lg text-sm flex items-center justify-center gap-2 transition-all"
               style={{ background: '#fff', border: '1.5px solid #e5e7eb', fontFamily: 'var(--font-dm)', color: 'var(--jet)', cursor: 'pointer' }}
               onMouseEnter={e => (e.currentTarget.style.borderColor = '#9ca3af')}
@@ -240,7 +240,7 @@ export default function LoginPage() {
 
             {/* Facebook */}
             <button type="button"
-              onClick={() => window.location.href = 'http://localhost:3001/auth/facebook'}
+              onClick={() => window.location.href = 'https://login-backend-inmobiliario-production.up.railway.app/auth/facebook'}
               className="w-full py-3 rounded-lg text-sm flex items-center justify-center gap-2 transition-all"
               style={{ background: '#1877F2', border: '1.5px solid #1877F2', fontFamily: 'var(--font-dm)', color: '#fff', cursor: 'pointer' }}
               onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
@@ -253,7 +253,7 @@ export default function LoginPage() {
 
             {/* X (Twitter) */}
             <button type="button"
-              onClick={() => window.location.href = 'http://localhost:3001/auth/twitter'}
+            onClick={() => window.location.href = 'https://login-backend-inmobiliario-production.up.railway.app/auth/twitter'}
               className="w-full py-3 rounded-lg text-sm flex items-center justify-center gap-2 transition-all"
               style={{ background: '#000', border: '1.5px solid #000', fontFamily: 'var(--font-dm)', color: '#fff', cursor: 'pointer' }}
               onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
