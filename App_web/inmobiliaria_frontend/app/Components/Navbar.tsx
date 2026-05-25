@@ -5,9 +5,12 @@ export default function Navbar() {
         <p className="text-xl font-inter font-bold">Sistema Inmobiliario</p>
         {/* <ul className="flex justify-start">Comprar</ul> */}
         <ul className="flex gap-6 font-inter">
-          <button className="bg-[#FCA311] text-white hover:text-black p-2 px-4 rounded-lg cursor-pointer hover:bg-[#F8F9FA] transition duration-300">
-            Ingresar
-          </button>
+          <a 
+          href="http://localhost:3004/login"
+          className="bg-[#FCA311] text-white hover:text-black p-2 px-4 rounded-lg cursor-pointer hover:bg-[#F8F9FA] transition duration-300"
+          >
+          Ingresar
+        </a>
         </ul>
       </nav>
     </div>

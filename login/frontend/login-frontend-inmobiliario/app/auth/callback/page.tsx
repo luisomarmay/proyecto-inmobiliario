@@ -23,7 +23,7 @@ function CallbackContent() {
     if (role === 'admin') {
       router.push('/dashboard/admin');
     } else {
-      router.push('/dashboard');
+      router.push('/Inmuebles');
     }
   }, []);
 

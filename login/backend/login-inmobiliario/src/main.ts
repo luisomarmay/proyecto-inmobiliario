@@ -10,6 +10,8 @@ async function bootstrap() {
  app.enableCors({
   origin: [
     'http://localhost:3000',
+    'http://localhost:3003',
+     'http://localhost:3004',
     'https://login-frontend-inmobiliario-5wzskgelf-proyecto-inmobiliria.vercel.app',
   ],
   credentials: true,

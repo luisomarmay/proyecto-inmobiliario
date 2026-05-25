@@ -58,7 +58,7 @@ export default function LoginPage() {
         : await register({ name: form.name, email: form.email, password: form.password });
 
       tokenStore.set(response.accessToken);
-      router.push(response.user.role === 'admin' ? '/dashboard/admin' : '/dashboard');
+      router.push(response.user.role === 'admin' ? '/dashboard/admin' : 'http://localhost:3000/Inmuebles');
     } catch (err: any) {
       setError(err.message || 'Ocurrió un error. Intenta de nuevo.');
     } finally {

@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { User } from './users/user.entity';
+import { ContactoModule } from './contacto/contacto.module';
+import { Contacto } from './contacto/contacto.entity';
 
 @Module({
   imports: [
@@ -18,7 +20,7 @@ import { User } from './users/user.entity';
           return {
             type: 'postgres',
             url: databaseUrl,
-            entities: [User],
+            entities: [User, Contacto],
             synchronize: true,
             ssl: { rejectUnauthorized: false }, // requerido en Railway
           };
@@ -31,13 +33,15 @@ import { User } from './users/user.entity';
           username: config.get('DB_USER'),
           password: config.get('DB_PASS'),
           database: config.get('DB_NAME'),
-          entities: [User],
+          entities: [User, Contacto],
           synchronize: true,
         };
       },
     }),
 
     AuthModule,
+
+    ContactoModule,
   ],
 })
 export class AppModule {}

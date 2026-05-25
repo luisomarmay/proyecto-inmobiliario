@@ -7,6 +7,30 @@ export default function Contacto() {
     const [nombre, setNombre] = useState("")
     const [correo, setCorreo] = useState("")
     const [mensaje, setMensaje] = useState("")
+    const [enviado, setEnviado] = useState(false)
+    const [error, setError] = useState("")
+
+    const enviar = async () => {
+        if (!nombre || !correo || !mensaje) {
+            setError("Por favor completa todos los campos.")
+            return
+        }
+        try {
+            const res = await fetch("http://localhost:3001/contacto", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre, correo, mensaje }),
+            })
+            if (!res.ok) throw new Error("Error al enviar")
+            setEnviado(true)
+            setError("")
+            setNombre("")
+            setCorreo("")
+            setMensaje("")
+        } catch {
+            setError("Hubo un problema al enviar. Intenta de nuevo.")
+        }
+    }
 
     return (
         <motion.section
@@ -59,8 +83,14 @@ export default function Contacto() {
                             text-white placeholder:text-white/30 focus:outline-none focus:border-naranja transition-all duration-300 resize-none"
                         />
                     </div>
-                    <button className="flex items-center justify-center gap-2 bg-naranja text-white font-inter font-semibold py-4 rounded-xl
-                    transition-all duration-300 hover:brightness-110 hover:scale-[1.02] cursor-pointer shadow-lg shadow-naranja/30">
+
+                    {error && <p className="text-red-400 text-sm font-inter text-center">{error}</p>}
+                    {enviado && <p className="text-green-400 text-sm font-inter text-center">¡Mensaje enviado con éxito!</p>}
+
+                    <button
+                        onClick={enviar}
+                        className="flex items-center justify-center gap-2 bg-naranja text-white font-inter font-semibold py-4 rounded-xl
+                        transition-all duration-300 hover:brightness-110 hover:scale-[1.02] cursor-pointer shadow-lg shadow-naranja/30">
                         <Send size={16} />
                         Enviar mensaje
                     </button>
