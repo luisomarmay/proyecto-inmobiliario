@@ -6,7 +6,7 @@ export default function Navbar() {
         {/* <ul className="flex justify-start">Comprar</ul> */}
         <ul className="flex gap-6 font-inter">
           <a 
-          href="http://localhost:3004/login"
+          href="http://localhost:3003/login"
           className="bg-[#FCA311] text-white hover:text-black p-2 px-4 rounded-lg cursor-pointer hover:bg-[#F8F9FA] transition duration-300"
           >
           Ingresar
