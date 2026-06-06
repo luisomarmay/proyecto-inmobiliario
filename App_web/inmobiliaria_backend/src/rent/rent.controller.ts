@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, Param } from '@nestjs/common';
 import { RentService } from './rent.service';
 
 @Controller('rent')
@@ -7,7 +7,11 @@ export class RentController {
 
   @Get()
   async getProperties(@Query() query: any) {
-    // ← agregar @Query()
     return this.rentService.getProperties(query);
+  }
+
+  @Get(':id')
+  async getPropertyById(@Param('id') id: string) {
+    return this.rentService.getPropertyById(id);
   }
 }

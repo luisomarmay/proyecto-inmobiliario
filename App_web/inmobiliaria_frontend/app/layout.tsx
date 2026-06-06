@@ -1,13 +1,20 @@
 import "./globals.css";
 import Navbar from "./Components/Navbar";
 import Footer from "./Components/Footer";
-export default function Layout({ children }) {
+import { Playfair_Display } from "next/font/google";
+
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+});
+
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="es" className={playfair.variable}>
       <body>
-        <Navbar></Navbar>
+        <Navbar />
         {children}
-        <Footer></Footer>
+        <Footer />
       </body>
     </html>
   );
