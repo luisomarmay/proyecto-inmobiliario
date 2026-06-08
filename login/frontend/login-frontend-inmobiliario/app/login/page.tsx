@@ -57,8 +57,15 @@ export default function LoginPage() {
         ? await login({ email: form.email, password: form.password })
         : await register({ name: form.name, email: form.email, password: form.password });
 
+      // tokenStore.set(response.accessToken);
+      // router.push(response.user.role === 'admin' ? '/dashboard/admin' : 'http://localhost:3000/Inmuebles');
       tokenStore.set(response.accessToken);
-      router.push(response.user.role === 'admin' ? '/dashboard/admin' : 'http://localhost:3000/Inmuebles');
+      if (response.user.role === 'admin') {
+        router.push('/dashboard/admin');
+        } else {
+        // Redirige al callback del buscador pasando el token en la URL
+        window.location.href = `http://localhost:3000/auth/callback?token=${response.accessToken}&role=${response.user.role}`;
+        }
     } catch (err: any) {
       setError(err.message || 'Ocurrió un error. Intenta de nuevo.');
     } finally {

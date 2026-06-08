@@ -14,6 +14,7 @@ import {
 import MapaProperties from "../Components/MapaProperties";
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 interface Filters {
   search: string;
@@ -33,6 +34,23 @@ export default function Inmueble() {
   const [imageIndexes, setImageIndexes] = useState<Record<string, number>>({});
   const [favoritos, setFavoritos] = useState<Set<string>>(new Set());
 
+  // Estados del modal de contacto
+  const { user, token, isLoggedIn } = useAuth();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState<any>(null);
+  const [form, setForm] = useState({ nombre: "", email: "", telefono: "", mensaje: "" });
+  const [sending, setSending] = useState(false);
+
+  const [filters, setFilters] = useState<Filters>({
+  search: "",
+  operation_type: "",
+  property_type: "",
+  bedrooms: "",
+  max_price: "",
+  page: 1,
+});
+
+
   const toggleFavorito = (id: string) => {
     setFavoritos((prev) => {
       const newSet = new Set(prev);
@@ -45,15 +63,6 @@ export default function Inmueble() {
     });
   };
 
-  const [filters, setFilters] = useState<Filters>({
-    search: "",
-    operation_type: "",
-    property_type: "",
-    bedrooms: "",
-    max_price: "",
-    page: 1,
-  });
-
   const getImageIndex = (id: string) => imageIndexes[id] || 0;
 
   const prevImage = (e: React.MouseEvent, id: string, total: number) => {
@@ -64,7 +73,7 @@ export default function Inmueble() {
       [id]: (getImageIndex(id) - 1 + total) % total,
     }));
   };
-
+  
   const nextImage = (e: React.MouseEvent, id: string, total: number) => {
     e.preventDefault();
     e.stopPropagation();
@@ -95,7 +104,6 @@ export default function Inmueble() {
         `http://localhost:3002/rent?${params.toString()}`,
       );
       const data = await res.json();
-      console.log("pagination recibida:", data.pagination);
 
       setProperties(data.properties);
       setPagination(data.pagination);
@@ -116,8 +124,102 @@ export default function Inmueble() {
     setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
   };
 
+  // Funciones del modal
+  const openContactModal = (property: any) => {
+    setSelectedProperty(property);
+    setForm({
+      nombre: user?.name ?? "",
+      email: user?.email ?? "",
+      telefono: user?.phone ?? "",
+      mensaje: `¡Hola! Quiero que se comuniquen conmigo por este inmueble: ${property.title}`,
+    });
+    setModalOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    setSending(true);
+    try {
+      await fetch("http://localhost:3001/contacto/easybroker", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          property_id: selectedProperty.id,
+          name: form.nombre,
+          email: form.email,
+          phone: form.telefono,
+          message: form.mensaje,
+        }),
+      });
+      setModalOpen(false);
+      alert("¡Solicitud enviada!");
+    } catch (err) {
+      alert("Error al enviar");
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <div>
+      {/*Modal de formulario */}
+  {modalOpen && (
+  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div className="border border-white/10 rounded-xl color3 px-2 py-1 shadow-xl w-full max-w-sm">
+      <div className="flex justify-between items-center p-3 pb-1">
+        <div>
+          <p className="text-[#FCA311] font-playfair text-lg">¿Interesado?</p>
+          <p className="text-white text-sm">
+            {selectedProperty?.title}
+          </p>
+        </div>
+        <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-white text-2xl">✕</button>
+      </div>
+
+      <div className="grid grid-cols-5 gap-2 m-3">
+        <input
+          className="col-span-2 text-white border-2 color3 border-slate-600/40 rounded-lg p-2 text-sm focus:outline-2 focus:outline-[#FCA311]"
+          type="text"
+          placeholder="Nombre"
+          value={form.nombre}
+          onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+        />
+        <input
+          className="col-span-3 text-white border-2 color3 border-slate-600/40 rounded-lg p-2 text-sm focus:outline-2 focus:outline-[#FCA311]"
+          type="email"
+          placeholder="E-mail"
+          value={form.email}
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
+        />
+        <input
+          type="tel"
+          className="col-span-5 border-slate-600/40 color3 text-white rounded-lg p-2 text-sm border-2 focus:outline-2 focus:outline-[#FCA311]"
+          placeholder="Teléfono"
+          value={form.telefono}
+          onChange={(e) => setForm({ ...form, telefono: e.target.value })}
+        />
+        <textarea
+          placeholder="Mensaje"
+          className="text-white h-[80px] color3 border-slate-600/40 border-2 rounded-lg p-2 text-sm col-span-5 resize-none focus:outline-2 focus:outline-[#FCA311]"
+          value={form.mensaje}
+          onChange={(e) => setForm({ ...form, mensaje: e.target.value })}
+        />
+        <button 
+          onClick={handleSubmit}
+          disabled={sending}
+          className="rounded-lg col-span-5 bg-[#FCA311] text-black p-2 text-sm flex justify-center gap-2 items-center hover:bg-[#e89200] transition disabled:opacity-50">
+          {sending ? "Enviando..." : "Contactar por correo electrónico"}
+        </button>
+        <button className="text-white rounded-lg col-span-5 bg-[#25D366] p-2 text-sm flex gap-2 justify-center items-center hover:bg-[#20ba5a] transition">
+          Contactar por WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+  )}
+
       {/* Header / Filtros */}
       <section className="py-3 px-2 flex gap-6 color3 border-b items-center border-white/10 shadow-lg sticky top-0 z-12">
         <div className="ml-8 min-w-[160px]">
@@ -146,10 +248,6 @@ export default function Inmueble() {
             <option value="">Operacion</option>
             <option value="rental">Rentar</option>
             <option value="sale">Comprar</option>
-            <option value="">Remates</option>
-            <option value="">Temporal/Vacacional</option>
-            <option value="">Desarrollo</option>
-            <option value="">Traspaso</option>
           </select>
           <select
             className="shadow py-2 px-3 cursor-pointer rounded-lg h-[40px] border border-black/10 text-black text-sm color5 focus:outline-2 focus:outline-[#FCA311]"
@@ -309,7 +407,9 @@ export default function Inmueble() {
                     </div>
                   </div>
                   <div className="px-3 pt-3 text-sm text-white">
-                    <button className="color3 rounded-lg py-1 w-full px-3 flex items-center justify-center gap-1 cursor-pointer">
+                    <button 
+                      onClick={() => openContactModal(property)}
+                      className="color3 rounded-lg py-1 w-full px-3 flex items-center justify-center gap-1 cursor-pointer">
                       <MessageCircleMore size={15} />
                       Contactar
                     </button>

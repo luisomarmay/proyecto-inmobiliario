@@ -5,13 +5,18 @@ import { MapPin } from "lucide-react"
 import { Bed, Bath } from "lucide-react"
 
 export default function Propiedades() {
-  const [propiedades, setPropiedades] = useState([])
+  const [propiedades, setPropiedades] = useState<any[]>([])
 
   useEffect(() => {
-    fetch("http://localhost:3002/rent")
-      .then(res => res.json())
-      .then(data => setPropiedades(data))
-  }, [])
+  fetch("http://localhost:3002/rent")
+    .then(res => res.json())
+    .then(data => {
+      if (Array.isArray(data.properties)) {
+        setPropiedades(data.properties)
+      }
+    })
+    .catch(() => setPropiedades([]))
+}, [])
 
     return (
         <motion.section

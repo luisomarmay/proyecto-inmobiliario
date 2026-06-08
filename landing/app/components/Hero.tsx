@@ -3,14 +3,17 @@ import { motion } from "framer-motion"
 import { useState, useEffect } from "react"
 
 export default function Hero() {
-
+    const [mounted, setMounted] = useState(false)
     const [propiedad, setPropiedades] = useState<any>(null)
 
     useEffect(() => {
-    fetch("http://localhost:3002/rent")
-    .then(res => res.json())
-    .then(data => setPropiedades(data[4]))
+        setMounted(true)
+        fetch("http://localhost:3002/rent")
+            .then(res => res.json())
+            .then(data => setPropiedades(data.properties[4]))
     }, [])
+
+    if (!mounted) return null  // ← Evita renderizar hasta que esté montado
 
     return (
         
