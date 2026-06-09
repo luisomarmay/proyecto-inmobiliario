@@ -7,13 +7,13 @@ import {
   Bath,
   CarFront,
   Ruler,
-  Smartphone,
-  Mail,
   ArrowLeft,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import MapaSingle from "../../../Components/MapaSingle";
+// Importación del formulario
+import { ContactForm } from "../../../Components/ContactForm";
 
 export default function Information() {
   const { id } = useParams();
@@ -25,7 +25,7 @@ export default function Information() {
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
-    fetch(`http://localhost:3002/rent/${id}`)
+    fetch(`http://localhost:3001/rent/${id}`)
       .then((res) => res.json())
       .then((data) => {
         console.log("property data:", data);
@@ -209,60 +209,7 @@ export default function Information() {
             </div>
 
             {/* Derecha - Formulario */}
-            <div className="border border-white/10 rounded-xl color3 px-2 py-1 shadow-xl sticky top-4 h-fit">
-              <p className="text-[#FCA311] p-3 pb-1 font-playfair text-lg">
-                ¿Interesado?
-              </p>
-              <p className="px-3 text-white text-sm">
-                Contáctate con {property.agent?.name || "el agente"}
-              </p>
-              <div className="grid grid-cols-5 gap-2 m-3">
-                <input
-                  className="col-span-2 text-white border-2 color3 border-slate-600/40 rounded-lg p-2 text-sm focus:outline-2 focus:outline-[#FCA311]"
-                  type="text"
-                  placeholder="Nombre"
-                />
-                <input
-                  className="col-span-3 text-white border-2 color3 border-slate-600/40 rounded-lg p-2 text-sm focus:outline-2 focus:outline-[#FCA311]"
-                  type="email"
-                  placeholder="E-mail"
-                />
-                <select className="border-slate-600/40 color3 text-white p-2 text-sm border-2 rounded-lg focus:outline-2 focus:outline-[#FCA311]">
-                  <option className="color2 text-white" value="1">
-                    1
-                  </option>
-                  <option className="color2 text-white" value="2">
-                    2
-                  </option>
-                  <option className="color2 text-white" value="3">
-                    3
-                  </option>
-                  <option className="color2 text-white" value="4">
-                    4
-                  </option>
-                  <option className="color2 text-white" value="5">
-                    5
-                  </option>
-                </select>
-                <input
-                  type="tel"
-                  className="col-span-4 border-slate-600/40 color3 text-white rounded-lg p-2 text-sm border-2 focus:outline-2 focus:outline-[#FCA311]"
-                  placeholder="Telefono"
-                />
-                <textarea
-                  placeholder="Mensaje"
-                  className="text-white h-[80px] color3 border-slate-600/40 border-2 rounded-lg p-2 text-sm col-span-5 resize-none focus:outline-2 focus:outline-[#FCA311]"
-                />
-                <button className="rounded-lg col-span-5 bg-[#FCA311] text-black p-2 text-sm flex justify-center gap-2 items-center">
-                  <Mail size={15} />
-                  Contactar por correo electrónico
-                </button>
-                <button className="text-black rounded-lg col-span-5 bg-[#25D366] p-2 text-sm flex gap-2 justify-center items-center">
-                  <Smartphone size={15} />
-                  Contactar por WhatsApp
-                </button>
-              </div>
-            </div>
+            <ContactForm property={property} />
           </div>
         </div>
       </section>

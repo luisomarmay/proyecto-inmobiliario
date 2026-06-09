@@ -8,7 +8,7 @@ export default function Hero() {
 
     useEffect(() => {
         setMounted(true)
-        fetch("http://localhost:3002/rent")
+        fetch("http://localhost:3001/rent")
             .then(res => res.json())
             .then(data => setPropiedades(data.properties[4]))
     }, [])

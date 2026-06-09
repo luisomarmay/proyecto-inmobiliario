@@ -8,7 +8,7 @@ export default function Propiedades() {
   const [propiedades, setPropiedades] = useState<any[]>([])
 
   useEffect(() => {
-  fetch("http://localhost:3002/rent")
+  fetch("http://localhost:3001/rent")
     .then(res => res.json())
     .then(data => {
       if (Array.isArray(data.properties)) {

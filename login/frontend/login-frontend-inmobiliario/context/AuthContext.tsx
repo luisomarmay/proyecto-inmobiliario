@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const savedToken = localStorage.getItem("accessToken");
     if (savedToken) loadUser(savedToken);
 
-    // ✅ Escucha cambios en localStorage (cuando el callback guarda el token)
+    // Escucha cambios en localStorage (cuando el callback guarda el token)
     const handleStorage = (e: StorageEvent) => {
       if (e.key === "accessToken" && e.newValue) {
         loadUser(e.newValue);
