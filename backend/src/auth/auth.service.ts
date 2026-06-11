@@ -1,13 +1,3 @@
-// ============================================================
-// auth.service.ts
-// Contiene toda la lógica de autenticación:
-//   - register(): crea usuario con contraseña hasheada
-//   - login(): valida credenciales y emite tokens
-//   - googleLogin(): crea o recupera usuario de Google
-//   - refreshTokens(): renueva el access token
-//   - logout(): invalida el refresh token
-// ============================================================
-
 import {
   Injectable,
   ConflictException,
@@ -23,7 +13,8 @@ import { LoginDto } from './dto/login.dto';
 import { JwtPayload } from './strategies/jwt.strategy';
 import * as crypto from 'crypto';
 import { MailService } from '../mail/mail.service';
-// Estructura de respuesta estándar al hacer login/register
+import { AdminLoginDto } from './dto/admin-login.dto';
+
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
@@ -49,20 +40,18 @@ export class AuthService {
   // REGISTRO LOCAL
   // ----------------------------------------------------------
   async register(dto: RegisterDto): Promise<AuthTokens> {
-    // Verificar que el email no esté en uso
     const existing = await this.usersService.findByEmail(dto.email);
     if (existing) {
       throw new ConflictException('Este email ya está registrado');
     }
 
-    // Hashear la contraseña antes de guardar (nunca guardar texto plano)
     const hashedPassword = await bcrypt.hash(dto.password, 12);
 
     const user = await this.usersService.create({
       name: dto.name,
       email: dto.email,
       password: hashedPassword,
-      role: UserRole.CLIENTE, // por defecto, todo nuevo registro es cliente
+      role: UserRole.CLIENTE,
     });
 
     await this.mailService.sendWelcome(user.email, user.name);
@@ -74,11 +63,9 @@ export class AuthService {
   // LOGIN LOCAL
   // ----------------------------------------------------------
   async login(dto: LoginDto): Promise<AuthTokens> {
-    // Obtener usuario incluyendo la contraseña (columna con select: false)
     const user = await this.usersService.findByEmailWithPassword(dto.email);
 
     if (!user) {
-      // Mismo mensaje para email y password: evitar enumeración de usuarios
       throw new UnauthorizedException('Credenciales incorrectas');
     }
 
@@ -97,8 +84,36 @@ export class AuthService {
   }
 
   // ----------------------------------------------------------
-  // LOGIN / REGISTRO CON GOOGLE
-  // Llamado desde GoogleStrategy.validate()
+  // LOGIN ADMIN
+  // Solo permite acceso a usuarios con rol ADMIN
+  // ----------------------------------------------------------
+  async adminLogin(dto: AdminLoginDto): Promise<AuthTokens> {
+    const user = await this.usersService.findByEmailWithPassword(dto.email);
+
+    if (!user) {
+      throw new UnauthorizedException('Credenciales incorrectas');
+    }
+
+    if (!user.password) {
+      throw new UnauthorizedException(
+        'Esta cuenta usa autenticación social. No permitido en panel admin.',
+      );
+    }
+
+    const adminPasswordMatch = await bcrypt.compare(dto.password, user.password);
+    if (!adminPasswordMatch) {
+      throw new UnauthorizedException('Credenciales incorrectas');
+    }
+
+    if (user.role !== UserRole.ADMIN) {
+      throw new UnauthorizedException('Credenciales incorrectas');
+    }
+
+    return this.generateAndSaveTokens(user);
+  }
+
+  // ----------------------------------------------------------
+  // LOGIN CON GOOGLE
   // ----------------------------------------------------------
   async googleLogin(googleUser: {
     googleId: string;
@@ -106,21 +121,17 @@ export class AuthService {
     name: string;
     avatar: string;
   }): Promise<AuthTokens> {
-    // 1. Buscar si ya existe por Google ID
     let user = await this.usersService.findByGoogleId(googleUser.googleId);
 
     if (!user) {
-      // 2. Buscar si existe con ese email (registro previo local)
       user = await this.usersService.findByEmail(googleUser.email);
 
       if (user) {
-        // Vincular Google ID a cuenta existente
         await this.usersService.update(user.id, {
           googleId: googleUser.googleId,
           avatar: googleUser.avatar,
         });
       } else {
-        // 3. Crear cuenta nueva con Google
         user = await this.usersService.create({
           googleId: googleUser.googleId,
           email: googleUser.email,
@@ -137,7 +148,6 @@ export class AuthService {
 
   // ----------------------------------------------------------
   // REFRESH TOKEN
-  // Renueva el access token usando el refresh token
   // ----------------------------------------------------------
   async refreshTokens(userId: string, refreshToken: string): Promise<AuthTokens> {
     const user = await this.usersService.findById(userId);
@@ -156,37 +166,32 @@ export class AuthService {
 
   // ----------------------------------------------------------
   // LOGOUT
-  // Elimina el refresh token guardado (invalida la sesión)
   // ----------------------------------------------------------
   async logout(userId: string): Promise<void> {
     await this.usersService.update(userId, { refreshToken: null });
   }
 
+  // ----------------------------------------------------------
+  // FORGOT PASSWORD
+  // ----------------------------------------------------------
   async forgotPassword(email: string): Promise<void> {
     const user = await this.usersService.findByEmail(email);
 
-    // Siempre respondemos igual aunque el email no exista
-    // para no revelar qué emails están registrados
     if (!user) return;
 
-    // Genera un token aleatorio seguro de 32 bytes
     const token = crypto.randomBytes(32).toString('hex');
-
-    // El token expira en 1 hora
     const expires = new Date(Date.now() + 60 * 60 * 1000);
 
-    // Guarda el token en la BD
     await this.usersService.update(user.id, {
       resetPasswordToken: token,
       resetPasswordExpires: expires,
     });
 
-    // Envía el email con el link
     await this.mailService.sendPasswordReset(user.email, token);
   }
 
   // ----------------------------------------------------------
-  // RESTABLECER CONTRASEÑA
+  // RESET PASSWORD
   // ----------------------------------------------------------
   async resetPassword(token: string, newPassword: string): Promise<void> {
     const user = await this.usersService.findByResetToken(token);
@@ -195,62 +200,22 @@ export class AuthService {
       throw new UnauthorizedException('Token inválido o expirado');
     }
 
-    // Verifica que el token no haya expirado
     if (!user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
       throw new UnauthorizedException('El enlace de recuperación ha expirado');
     }
 
-    // Hashea la nueva contraseña
     const hashed = await bcrypt.hash(newPassword, 12);
 
-    // Actualiza contraseña y limpia el token
     await this.usersService.update(user.id, {
       password: hashed,
       resetPasswordToken: null,
       resetPasswordExpires: null,
     });
   }
+
   // ----------------------------------------------------------
-  // PRIVADO: genera tokens y los guarda
-  // ----------------------------------------------------------
-  private async generateAndSaveTokens(user: User): Promise<AuthTokens> {
-    const payload: JwtPayload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
-
-    // Access token: corta duración (15 min)
-    const accessToken = this.jwtService.sign(payload, {
-      secret: this.configService.get('JWT_SECRET'),
-      expiresIn: '15m',
-    });
-
-    // Refresh token: larga duración (7 días)
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: this.configService.get('JWT_REFRESH_SECRET'),
-      expiresIn: '7d',
-    });
-
-    // Guardar refresh token hasheado (nunca en texto plano)
-    const hashedRefresh = await bcrypt.hash(refreshToken, 10);
-    await this.usersService.update(user.id, { refreshToken: hashedRefresh });
-
-    return {
-      accessToken,
-      refreshToken,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-      },
-    };
-  }
-
   // LOGIN CON FACEBOOK
-
+  // ----------------------------------------------------------
   async facebookLogin(facebookUser: {
     facebookId: string;
     email: string;
@@ -281,8 +246,9 @@ export class AuthService {
     return this.generateAndSaveTokens(user);
   }
 
+  // ----------------------------------------------------------
   // LOGIN CON TWITTER
-
+  // ----------------------------------------------------------
   async twitterLogin(twitterUser: {
     twitterId: string;
     email: string;
@@ -311,5 +277,41 @@ export class AuthService {
     }
 
     return this.generateAndSaveTokens(user);
+  }
+
+  // ----------------------------------------------------------
+  // PRIVADO: genera tokens y los guarda
+  // ----------------------------------------------------------
+  private async generateAndSaveTokens(user: User): Promise<AuthTokens> {
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_SECRET'),
+      expiresIn: '15m',
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
+      expiresIn: '7d',
+    });
+
+    const hashedRefresh = await bcrypt.hash(refreshToken, 10);
+    await this.usersService.update(user.id, { refreshToken: hashedRefresh });
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+      },
+    };
   }
 }

@@ -18,6 +18,8 @@ import { ConfigService } from '@nestjs/config';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { FacebookAuthGuard } from './guards/facebook-auth.guard';
 import { TwitterAuthGuard } from './guards/twitter-auth.guard';
+// Agrega este import junto a LoginDto y RegisterDto (línea ~6)
+import { AdminLoginDto } from './dto/admin-login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -46,7 +48,17 @@ export class AuthController {
       user: tokens.user,
     });
   }
-
+  // POST /auth/admin/login
+  @Post('admin/login')
+  @HttpCode(HttpStatus.OK)
+  async adminLogin(@Body() dto: AdminLoginDto, @Res() res: Response) {
+    const tokens = await this.authService.adminLogin(dto);
+    this.setRefreshTokenCookie(res, tokens.refreshToken);
+    return res.json({
+      accessToken: tokens.accessToken,
+      user: tokens.user,
+    });
+  }
   // GET /auth/google
   @Get('google')
   @UseGuards(GoogleAuthGuard)
@@ -59,7 +71,7 @@ export class AuthController {
     this.setRefreshTokenCookie(res, tokens.refreshToken);
     const frontendUrl = this.configService.get('FRONTEND_URL');
     return res.redirect(
-  `${frontendUrl}/auth/callback?token=${tokens.accessToken}&role=${tokens.user.role}&provider=google`,
+      `${frontendUrl}/auth/callback?token=${tokens.accessToken}&role=${tokens.user.role}&provider=google`,
     );
   }
 
