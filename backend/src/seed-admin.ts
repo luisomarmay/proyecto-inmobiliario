@@ -33,7 +33,7 @@ async function seedAdmin() {
 
   try {
     await dataSource.initialize();
-    console.log('✅ Conectado a la base de datos');
+    console.log(' Conectado a la base de datos');
 
     const userRepo = dataSource.getRepository(User);
 
@@ -41,7 +41,7 @@ async function seedAdmin() {
     const existing = await userRepo.findOne({ where: { email: ADMIN_EMAIL } });
 
     if (existing) {
-      console.log(`⚠️  Ya existe un usuario con el email: ${ADMIN_EMAIL}`);
+      console.log(`  Ya existe un usuario con el email: ${ADMIN_EMAIL}`);
       if (existing.role !== UserRole.ADMIN) {
         existing.role = UserRole.ADMIN;
         await userRepo.save(existing);
@@ -64,14 +64,14 @@ async function seedAdmin() {
 
     await userRepo.save(admin);
 
-    console.log('✅ Usuario admin creado exitosamente:');
+    console.log('   Usuario admin creado exitosamente:');
     console.log(`   Nombre: ${ADMIN_NAME}`);
     console.log(`   Email:  ${ADMIN_EMAIL}`);
     console.log(`   Rol:    ${UserRole.ADMIN}`);
-    console.log('⚠️  Recuerda cambiar la contraseña después del primer login.');
+    console.log('  Recuerda cambiar la contraseña después del primer login.');
 
   } catch (error) {
-    console.error('❌ Error al crear el admin:', error);
+    console.error(' Error al crear el admin:', error);
   } finally {
     if (dataSource.isInitialized) await dataSource.destroy();
   }
