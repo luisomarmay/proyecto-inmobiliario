@@ -11,58 +11,146 @@ const serviceMap: Record<string, string> = {
 @Injectable()
 export class RentService {
   private readonly baseUrl = 'https://api.stagingeb.com/v1/properties';
+  private cache = new Map<string, { data: any; timestamp: number }>();
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
-  async getPropertyById(id: string) {
+  private setCached(key: string, data: any) {
+    this.cache.set(key, { data, timestamp: Date.now() });
+  }
+
+  private getCached(key: string) {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.timestamp > this.CACHE_TTL) {
+      this.cache.delete(key);
+      return null;
+    }
+    return entry.data;
+  }
+
+  // Delay entre peticiones para no saturar EasyBroker
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // Método privado para obtener detalle de una propiedad con caché individual
+  private async getPropertyDetail(publicId: string): Promise<any> {
+    const cacheKey = `property_detail_${publicId}`;
+    const cached = this.getCached(cacheKey);
+    if (cached) return cached;
+
+    const detail = await axios.get(
+      `https://api.stagingeb.com/v1/properties/${publicId}`,
+      {
+        headers: {
+          'X-Authorization': process.env.EASYBROKER_KEY,
+          accept: 'application/json',
+        },
+      },
+    );
+
+    this.setCached(cacheKey, detail.data);
+    return detail.data;
+  }
+
+  // Método privado para geocodificar una ubicación
+  private async geocode(locationName: string): Promise<{ lat: number; lng: number } | null> {
     try {
-      const detail = await axios.get(
-        `https://api.stagingeb.com/v1/properties/${id}`,
+      const geoRes = await axios.get(
+        'https://nominatim.openstreetmap.org/search',
         {
-          headers: {
-            'X-Authorization': process.env.EASYBROKER_KEY,
-            accept: 'application/json',
-          },
+          params: { q: locationName, format: 'json', limit: 1 },
+          headers: { 'User-Agent': 'inmobiliaria-app/1.0' },
         },
       );
-      
-      const data = detail.data;
+      const result = geoRes.data?.[0];
+      if (result) {
+        return { lat: parseFloat(result.lat), lng: parseFloat(result.lon) };
+      }
+    } catch {}
+    return null;
+  }
+
+  // Procesa una propiedad individual (extraído para limpiar getProperties)
+  private async processProperty(property: any) {
+    let lat = 19.4326;
+    let lng = -99.1332;
+
+    const detailData = await this.getPropertyDetail(property.public_id);
+
+    const detailLat = parseFloat(detailData.location?.latitude);
+    const detailLng = parseFloat(detailData.location?.longitude);
+
+    if (!isNaN(detailLat) && !isNaN(detailLng)) {
+      lat = detailLat;
+      lng = detailLng;
+    } else if (detailData.location?.name) {
+      console.log(`[${property.public_id}] Sin coords, geocodificando: ${detailData.location.name}`);
+      const coords = await this.geocode(detailData.location.name);
+      if (coords) {
+        lat = coords.lat;
+        lng = coords.lng;
+        console.log(`[${property.public_id}] Geocodificado: ${lat}, ${lng}`);
+      } else {
+        console.log(`[${property.public_id}] Geocoding sin resultados, usando default`);
+      }
+    } else {
+      console.log(`[${property.public_id}] Sin coords y sin location.name, usando default`);
+    }
+
+    return {
+      id: property.public_id,
+      price: property.operations?.[0]?.amount,
+      service: serviceMap[property.operations?.[0]?.type] ?? property.operations?.[0]?.type,
+      bedrooms: property.bedrooms || 0,
+      bathrooms: property.bathrooms || 0,
+      location: detailData.location?.name || property.location?.name || null,
+      lat,
+      lng,
+      type: property.property_type,
+      parking: property.parking_spaces || 0,
+      title: property.title,
+      construction_size: detailData.construction_size,
+      lot_size: detailData.lot_size,
+      image: property.title_image_full,
+      images: detailData.property_images?.map((img: any) => img.url) || [property.title_image_full],
+    };
+  }
+
+  async getPropertyById(id: string) {
+    const cacheKey = `property_by_id_${id}`;
+    const cached = this.getCached(cacheKey);
+    if (cached) return cached;
+
+    try {
+      const data = await this.getPropertyDetail(id);
+
       let lat = parseFloat(data.location?.latitude);
       let lng = parseFloat(data.location?.longitude);
       console.log('agent data:', JSON.stringify(data.agent, null, 2));
       console.log('full data keys:', Object.keys(data));
-      
+
       if (isNaN(lat) || isNaN(lng)) {
         if (data.location?.name) {
-          try {
-            const geoRes = await axios.get(
-              'https://nominatim.openstreetmap.org/search',
-              {
-                params: { q: data.location.name, format: 'json', limit: 1 },
-                headers: { 'User-Agent': 'inmobiliaria-app/1.0' },
-              },
-            );
-            const result = geoRes.data?.[0];
-            if (result) {
-              lat = parseFloat(result.lat);
-              lng = parseFloat(result.lon);
-            }
-          } catch {}
+          const coords = await this.geocode(data.location.name);
+          if (coords) {
+            lat = coords.lat;
+            lng = coords.lng;
+          }
         }
       }
 
-      return {
+      const result = {
         id: data.public_id,
         title: data.title,
         price: data.operations?.[0]?.amount,
-        service:
-          serviceMap[data.operations?.[0]?.type] ?? data.operations?.[0]?.type,
+        service: serviceMap[data.operations?.[0]?.type] ?? data.operations?.[0]?.type,
         bedrooms: data.bedrooms || 0,
         bathrooms: data.bathrooms || 0,
         parking: data.parking_spaces || 0,
         location: data.location?.name,
         description: data.description,
-        images: data.property_images?.map((img: any) => img.url) || [
-          data.title_image_full,
-        ],
+        images: data.property_images?.map((img: any) => img.url) || [data.title_image_full],
         type: data.property_type,
         lot_size: data.lot_size,
         construction_size: data.construction_size,
@@ -75,6 +163,9 @@ export class RentService {
           image: data.agent?.profile_image_url,
         },
       };
+
+      this.setCached(cacheKey, result);
+      return result;
     } catch (error: any) {
       throw new HttpException(
         error.response?.data?.message || error.message,
@@ -84,6 +175,10 @@ export class RentService {
   }
 
   async getProperties(filters: any = {}) {
+    const cacheKey = `properties_${JSON.stringify(filters)}`;
+    const cached = this.getCached(cacheKey);
+    if (cached) return cached;
+
     try {
       const params: any = {
         page: filters.page || 1,
@@ -111,99 +206,19 @@ export class RentService {
       const { content, pagination } = response.data;
       console.log('pagination raw:', JSON.stringify(pagination, null, 2));
 
-      const properties = await Promise.all(
-        content.map(async (property: any) => {
-          let lat = 19.4326;
-          let lng = -99.1332;
-
-          const detail = await axios.get(
-            `https://api.stagingeb.com/v1/properties/${property.public_id}`,
-            {
-              headers: {
-                'X-Authorization': process.env.EASYBROKER_KEY,
-                accept: 'application/json',
-              },
-            },
-          );
-
-          const detailLat = parseFloat(detail.data.location?.latitude);
-          const detailLng = parseFloat(detail.data.location?.longitude);
-
-          if (!isNaN(detailLat) && !isNaN(detailLng)) {
-            lat = detailLat;
-            lng = detailLng;
-          } else if (detail.data.location?.name) {
-            console.log(
-              `[${property.public_id}] Sin coords, geocodificando: ${detail.data.location.name}`,
-            );
-            try {
-              const geoRes = await axios.get(
-                'https://nominatim.openstreetmap.org/search',
-                {
-                  params: {
-                    q: detail.data.location.name,
-                    format: 'json',
-                    limit: 1,
-                  },
-                  headers: {
-                    'User-Agent': 'inmobiliaria-app/1.0',
-                  },
-                },
-              );
-
-              const result = geoRes.data?.[0];
-              if (result) {
-                lat = parseFloat(result.lat);
-                lng = parseFloat(result.lon);
-                console.log(
-                  `[${property.public_id}] Geocodificado: ${lat}, ${lng}`,
-                );
-              } else {
-                console.log(
-                  `[${property.public_id}] Geocoding sin resultados, usando default`,
-                );
-              }
-            } catch (geoError) {
-              console.log(
-                `[${property.public_id}] Error en geocoding, usando default`,
-              );
-            }
-          } else {
-            console.log(
-              `[${property.public_id}] Sin coords y sin location.name, usando default`,
-            );
-          }
-
-          return {
-            id: property.public_id,
-            price: property.operations?.[0]?.amount,
-            service:
-              serviceMap[property.operations?.[0]?.type] ??
-              property.operations?.[0]?.type,
-            bedrooms: property.bedrooms || 0,
-            bathrooms: property.bathrooms || 0,
-            location:
-              detail.data.location?.name || property.location?.name || null,
-            lat,
-            lng,
-            type: property.property_type,
-            parking: property.parking_spaces || 0,
-            title: property.title,
-            construction_size: detail.data.construction_size,
-            lot_size: detail.data.lot_size,
-            image: property.title_image_full,
-            images: detail.data.property_images?.map((img: any) => img.url) || [
-              property.title_image_full,
-            ],
-          };
-        }),
-      );
+      // ← Secuencial con delay en vez de Promise.all simultáneo
+      const properties: any[] = [];
+      for (const property of content) {
+        const result = await this.processProperty(property);
+        properties.push(result);
+        await this.delay(150); // 150ms entre cada petición a EasyBroker
+      }
 
       const filteredProperties = filters.bedrooms
         ? properties.filter((p: any) => p.bedrooms === Number(filters.bedrooms))
         : properties;
 
-      return {
+      const result = {
         properties: filteredProperties,
         pagination: {
           total: pagination?.total,
@@ -212,6 +227,9 @@ export class RentService {
           totalPages: Math.ceil(pagination?.total / pagination?.limit),
         },
       };
+
+      this.setCached(cacheKey, result);
+      return result;
     } catch (error: any) {
       throw new HttpException(
         error.response?.data?.message || error.message,

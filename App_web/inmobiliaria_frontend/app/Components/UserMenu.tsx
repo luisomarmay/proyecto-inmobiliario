@@ -10,7 +10,9 @@ export function UserMenu() {
   if (!isLoggedIn) {
     return (
       <a href="http://localhost:3004/login"
-        className="bg-amber-500 text-white px-4 py-2 rounded-lg font-medium">
+        className="bg-amber-500 text-white px-2 py-1 rounded-lg font-medium
+        transition-all duration-300 
+        hover:bg-amber-400 hover:scale-105 hover:shadow-lg hover:shadow-amber-500/30">
         Iniciar sesión
       </a>
     );

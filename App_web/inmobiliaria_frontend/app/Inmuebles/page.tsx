@@ -30,7 +30,6 @@ export default function Inmueble() {
   const [pagination, setPagination] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [cache, setCache] = useState<Record<number, any[]>>({});
   const [imageIndexes, setImageIndexes] = useState<Record<string, number>>({});
   const [favoritos, setFavoritos] = useState<Set<string>>(new Set());
 
@@ -77,12 +76,6 @@ export default function Inmueble() {
   };
 
   const fetchProperties = useCallback(async () => {
-    if (cache[filters.page]) {
-      setProperties(cache[filters.page]);
-      return;
-    }
-
-
 
     setLoading(true);
     try {
@@ -99,16 +92,15 @@ export default function Inmueble() {
         `http://localhost:3001/rent?${params.toString()}`,
       );
       const data = await res.json();
-
-      setProperties(data.properties);
+      console.log("respuesta del backend:", data); // ← agrega esto
+      setProperties(data.properties ?? []);
       setPagination(data.pagination);
-      setCache((prev) => ({ ...prev, [filters.page]: data.properties }));
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [filters, cache]);
+  }, [filters]);
 
   useEffect(() => {
     fetchProperties();
@@ -116,7 +108,6 @@ export default function Inmueble() {
 
   
   const handleFilter = (key: keyof Filters, value: string) => {
-    setCache({});
     setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
   };
 
